@@ -20,5 +20,4 @@ COPY --from=nodebuilder /app /app
 WORKDIR /app
 
 # 在同一目录下执行Maven编译
-RUN cd web_src/ && \
-    mvn package -Pnative
+RUN  mvn package -Pnative
