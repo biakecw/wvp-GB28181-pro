@@ -1,0 +1,39 @@
+name: Node.js Build Workflow
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x] # Specify the Node.js version you want to use
+        # Include additional versions as needed
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        registry-url: 'https://registry.npmmirror.com' # Set the npm registry
+
+    - name: Install and build
+      run: |
+        cd  web_src/
+        npm install
+        npm run build
+
+    - name: Build Docker Image
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        push: false
+        platforms: linux/arm64
+        tags: user/app:latest # Replace 'user/app' with your Docker image name
