@@ -1,0 +1,24 @@
+# 使用 multi-stage 构建，首先定义 node 构建阶段
+FROM --platform=linux/arm64 node:latest as nodebuilder
+
+WORKDIR /app
+
+# 拷贝项目文件
+COPY . .
+
+# 安装依赖并构建项目
+RUN cd web_src/ && \
+    npm --registry=https://registry.npmmirror.com install && \
+    npm run build
+
+# 定义使用GraalVM Maven进行编译的阶段
+FROM --platform=linux/arm64 observabilitystack/graalvm-maven-builder:21.0.1-ol9
+
+# 将Node构建的结果复制到当前镜像中
+COPY --from=nodebuilder /app /app
+
+WORKDIR /app
+
+# 在同一目录下执行Maven编译
+RUN cd web_src/ && \
+    mvn package -Pnative
